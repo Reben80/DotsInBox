@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Player Dots Game</title>
+    <style>
+        /* Style for the body to center the content */
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #ffe0e0;
+}
+
+/* Style for the game container */
+#game-container {
+    text-align: center;
+    font-family: Arial, sans-serif;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    margin-bottom: 20px;
+}
+
+/* Style for the grid */
+#grid-container {
+    display: inline-block;
+    margin-right: 20px;
+}
+
+.row {
+    display: flex;
+}
+.cell {
+    width: 70px;
+    height: 70px;
+    border: 2px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Smooth transition for the hover effect */
+    background-color: #f0f0f0; /* Light background color for cells */
+}
+
+/* Hover effect for cells */
+.cell:hover {
+    background-color: #e0e0e0; /* Slightly darker background on hover */
+}
+
+.cell {
+    width: 70px;
+    height: 70px;
+    border: 2px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* Style for the dots */
+.dot {
+    width: 40px;
+    height: 40px;
+    background-color: #757272;
+    border-radius: 50%;
+}
+
+.player1 {
+    background-color: red;
+}
+
+.player2 {
+    background-color: blue;
+}
+
+/* Style for the turn indicator */
+#turn {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+/* Style for the game controls */
+#game-controls {
+    text-align: center;
+    font-family: Arial, sans-serif;
+}
+
+#game-controls label, #game-controls select, #game-controls button {
+    margin: 0 10px;
+    font-size: 16px;
+}
+
+#resetButton {
+    padding: 10px 20px;
+    font-size: 20px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+    </style>
+</head>
+<body>
+    <body>
+        <a id="twitter-handle" href="https://twitter.com/rebin3" target="_blank">@rebin3</a>
+    <div id="game-container">
+        <h1>Two-Player Dots Game</h1>
+        <p id="turn">Player 1's Turn (Computer)</p>
+        <div id="grid-container"></div>
+    </div>
+
+    <div id="game-controls">
+        <label for="boardSize">Select Board Size:</label>
+        <select id="boardSize">
+            <option value="3" selected>3x3</option>
+            <option value="4">4x4</option>
+            <option value="5">5x5</option>
+            <!-- Add more sizes as needed -->
+        </select>
+        <button id="resetButton">Reset Game</button>
+    </div>
+
+    <script>
+        // Element references
+        const gridContainer = document.getElementById('grid-container');
+        const turnElement = document.getElementById('turn');
+        const resetButton = document.getElementById('resetButton');
+        const boardSizeSelect = document.getElementById('boardSize');
+
+        // Initialize variables
+        let n = 3; // Initialize board size to 3x3
+        let m = n; // Make it a square grid
+        let currentPlayer, moves, grid;
+
+        // Event listener for board size change
+        boardSizeSelect.addEventListener('change', updateGridSize);
+
+        // Function to update the grid size
+        function updateGridSize() {
+            n = parseInt(boardSizeSelect.value);
+            m = n;
+            generateGrid();
+            initializeGame();
+        }
+
+        // Function to generate the grid
+        function generateGrid() {
+            gridContainer.innerHTML = '';
+            for (let i = 0; i < n; i++) {
+                const rowElement = document.createElement('div');
+                rowElement.className = 'row';
+                for (let j = 0; j < m; j++) {
+                    const cellElement = document.createElement('div');
+                    cellElement.className = 'cell';
+                    cellElement.id = `cell-${i}-${j}`;
+                    cellElement.addEventListener('click', () => {
+                        updateGrid(i, j);
+                    });
+                    rowElement.appendChild(cellElement);
+                }
+                gridContainer.appendChild(rowElement);
+            }
+        }
+
+        // Function to initialize the game
+        function initializeGame() {
+            currentPlayer = 1; // Start with player 1 (computer)
+            moves = 0;
+            grid = [];
+            for (let i = 0; i < n; i++) {
+                grid.push(Array(m).fill(null));
+            }
+            computerMove(); // Computer makes the first move
+            updateTurnIndicator();
+        }
+
+        // Function to update the grid after a move
+        function updateGrid(row, col) {
+            if (grid[row][col] === null && !isRowOccupied(row) && !isColumnOccupied(col)) {
+                grid[row][col] = currentPlayer;
+                const dotElement = document.createElement('div');
+                dotElement.className = `dot player${currentPlayer}`;
+                document.getElementById(`cell-${row}-${col}`).appendChild(dotElement);
+                moves++;
+                currentPlayer = 3 - currentPlayer; // Switch turns
+                updateTurnIndicator();
+                if (currentPlayer === 1) {
+                    setTimeout(computerMove, 1000);
+                }
+            }
+        }
+
+        // Function to check if a row is occupied
+        function isRowOccupied(row) {
+            return grid[row].some(cell => cell !== null);
+        }
+
+        // Function to check if a column is occupied
+        function isColumnOccupied(col) {
+            return grid.some(row => row[col] !== null);
+        }
+
+        // Function for the computer to make a move
+        function computerMove() {
+            let emptyCells = [];
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < m; j++) {
+                    if (grid[i][j] === null && !isRowOccupied(i) && !isColumnOccupied(j)) {
+                        emptyCells.push({ row: i, col: j });
+                    }
+                }
+            }
+            if (emptyCells.length > 0) {
+                const randomIndex = Math.floor(Math.random() * emptyCells.length);
+                const { row, col } = emptyCells[randomIndex];
+                updateGrid(row, col);
+            }
+        }
+
+        // Function to update the turn indicator
+        function updateTurnIndicator() {
+            turnElement.textContent = currentPlayer === 1 ? "Player 1's Turn (Computer)" : "Player 2's Turn (Human)";
+        }
+
+        // Event listener for reset button
+        resetButton.addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent any default action
+            n = parseInt(boardSizeSelect.value); // Reset the board size to the current selection
+            generateGrid(); // Re-generate the grid
+            initializeGame(); // Re-initialize the game
+        });
+
+        // Initialize the game on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            generateGrid(); // Generate the initial 3x3 grid
+            initializeGame();
+        });
+    </script>
+</body>
+</html>
